@@ -24,7 +24,14 @@ typedef struct Btree {
 	Btree_node* root;
 };
 
+// B tree 탐색에서 반환하는 구조체
+struct Btree_return {
+	Btree_node* node;
+	int index;
+};
+
 Btree_node* malloc_Btree_node();
+Btree_node* search_Btree(Btree_node* node, int key);
 void create_Btree(Btree* tree);
 void insert_Btree(Btree* tree, int key);
 void split_child_Btree(Btree_node* parent, int index);
@@ -40,6 +47,32 @@ Btree_node* malloc_Btree_node() {
 	}
 }
 
+// Btree에서 키에 대해서 검색을 수행하는 함수
+Btree_node* search_Btree(Btree_node* node, int key) {
+	int i = 0;
+	while (i <= node->key_num && key > node->key[i]) {
+		i++;
+	}
+
+	if (i <= node->key_num && key == node->key[i]) {
+		Btree_return* ret_value = (Btree_return*)malloc(sizeof(Btree_return));
+		if (ret_value == NULL) {
+			printf("malloc failed\n");
+			exit(1);
+		}
+		ret_value->node = node;
+		ret_value->index = i;
+
+		return ret_value;
+	}
+	else if (node->is_leaf == TRUE) {
+		return NULL;
+	}
+	else {
+		return search_Btree(node->child[i], key);
+	}
+}
+
 // 새로운 B tree를 생성하는 함수
 void create_Btree(Btree* tree) {
 	Btree_node* root = malloc_Btree_node();
@@ -48,6 +81,7 @@ void create_Btree(Btree* tree) {
 
 	tree->root = root;
 }
+
 // B tree의 root가 full이면 분할하고, key를 삽입하는 함수
 void insert_Btree(Btree* tree, int key) {
 	Btree_node* r = tree->root;
@@ -151,7 +185,7 @@ int main(void) {
 
 	end = clock();
 
-	enlapsed_time = (double)(end - start);
+	enlapsed_time = (double)(end - start) / CLOCKS_PER_SEC;
 
-	printf(" (t = %d) enlapsed_time: %f", MIN_DEGREE, enlapsed_time);
+	printf(" (t = %d) enlapsed_time: %f\n", MIN_DEGREE, enlapsed_time);
 }
